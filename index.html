@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0d12">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>SPOTR</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Pick a username (first visit) -->
+  <section id="join" class="screen" hidden>
+    <div class="hero">
+      <h1 class="logo">SPOTR</h1>
+      <p class="tagline">See it. Snap it. Score it.</p>
+    </div>
+    <form id="join-form" class="card stack">
+      <label>Your name<input id="join-name" maxlength="30" placeholder="Luke" required autocomplete="nickname"></label>
+      <label>Username<input id="join-handle" maxlength="20" placeholder="luke_spots" required
+             pattern="[a-z0-9_]{3,20}" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
+      <p class="hint">3–20 lowercase letters, numbers or _. Friends find you by this.</p>
+      <button class="primary" type="submit">Start spotting</button>
+      <p class="hint">No password: your account lives in this browser. Use the same browser each time.</p>
+      <p id="join-error" class="error" hidden></p>
+    </form>
+  </section>
+
+  <!-- The app -->
+  <section id="app" class="screen" hidden>
+    <header class="top">
+      <span class="logo small">SPOTR</span>
+      <span id="me" class="me"></span>
+    </header>
+
+    <main>
+      <div id="tab-feed" class="tab">
+        <div id="feed" class="stack"></div>
+        <button id="feed-more" class="ghost" hidden>Load more</button>
+      </div>
+
+      <div id="tab-spot" class="tab" hidden>
+        <div class="card stack center">
+          <p class="big">Point at a car and take a photo.</p>
+          <label class="primary file">
+            <input id="photo" type="file" accept="image/*" capture="environment">
+            📷 Take a photo
+          </label>
+          <p class="hint">Your exact location is never shown. Friends see the area only.</p>
+        </div>
+        <div id="result" class="stack"></div>
+      </div>
+
+      <div id="tab-friends" class="tab" hidden>
+        <form id="search-form" class="row">
+          <input id="search" placeholder="Find friends by username" autocapitalize="none" autocorrect="off">
+          <button class="primary" type="submit">Search</button>
+        </form>
+        <div id="search-results" class="stack"></div>
+        <button id="invite" class="ghost">Share SPOTR with friends</button>
+        <h3 id="requests-title" hidden>Friend requests</h3>
+        <div id="requests" class="stack"></div>
+        <h3>Friends</h3>
+        <div id="friends" class="stack"></div>
+      </div>
+    </main>
+
+    <nav class="tabs">
+      <button data-tab="feed" class="active">🏁<span>Feed</span></button>
+      <button data-tab="spot">📷<span>Spot</span></button>
+      <button data-tab="friends">👥<span>Friends</span></button>
+    </nav>
+  </section>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="app.js"></script>
+  <script src="capture.js"></script>
+</body>
+</html>
