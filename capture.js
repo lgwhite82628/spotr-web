@@ -26,13 +26,34 @@ function dHash(bitmap) {
   return bits.toString(16).padStart(16, "0");
 }
 
+/** Reason-specific help, since "location failed" alone leaves people stuck. */
+function locationHelp(err) {
+  const iphone = /iPhone|iPad/.test(navigator.userAgent);
+  if (!window.isSecureContext) return "Location needs the https:// link. Open SPOTR from the link you were sent.";
+  if (err?.code === 1) {
+    return iphone
+      ? "Location is blocked. On your iPhone: Settings → Privacy & Security → Location Services → turn it on, and set Safari Websites to \"While Using\". Then tap aA in Safari's address bar → Website Settings → Location → Allow, and try again."
+      : "Location is blocked for this site. Allow it in your browser's site settings (the icon next to the address), then try again.";
+  }
+  if (err?.code === 3) return "Finding your location took too long. Step outside or near a window and try again.";
+  return "Couldn't find your location. Check Location Services is on and try again.";
+}
+
+/** Quick, approximate fix first (good enough for the area); a slow precise fix only if that fails. */
 function locate() {
-  return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) return reject(new Error("This browser can't share a location."));
-    navigator.geolocation.getCurrentPosition(resolve, () =>
-      reject(new Error("SPOTR needs your location to score a spot (it's never shown). Allow it and try again.")),
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
-  });
+  const ask = (opts) => new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, opts));
+  if (!navigator.geolocation) return Promise.reject(new Error("This browser can't share a location. Try Safari or Chrome."));
+  return ask({ enableHighAccuracy: false, timeout: 10000, maximumAge: 5 * 60000 })
+    .catch((first) => first.code === 1 ? Promise.reject(first) : ask({ enableHighAccuracy: true, timeout: 25000, maximumAge: 0 }))
+    .catch((err) => Promise.reject(new Error(locationHelp(err))));
+}
+
+/** Ask as soon as the Spot tab opens, so the permission prompt isn't a surprise mid-upload. */
+let warmed = false;
+function warmLocation() {
+  if (warmed || !navigator.geolocation) return;
+  warmed = true;
+  locate().catch((e) => status(e.message));
 }
 
 function status(text) {
@@ -85,6 +106,8 @@ function handle(r) {
   }
 }
 
+document.querySelector('.tabs button[data-tab="spot"]').addEventListener("click", warmLocation);
+
 $("photo").addEventListener("change", async (event) => {
   const file = event.target.files?.[0];
   event.target.value = "";
@@ -99,7 +122,7 @@ $("photo").addEventListener("change", async (event) => {
     await send({
       action: "identify", photoPath: path, phash: prepared.phash,
       capture: {
-        lat: pos.coords.latitude, lng: pos.coords.longitude, accuracyM: Math.min(pos.coords.accuracy || 50, 1000),
+        lat: pos.coords.latitude, lng: pos.coords.longitude, accuracyM: Math.round(pos.coords.accuracy || 50),
         capturedAt: new Date().toISOString(), deviceSpeedMps: 0, passengerConfirmed: true, targetMoving: false,
         source: "live",
       },
