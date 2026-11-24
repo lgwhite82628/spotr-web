@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Open in SPOTR</title>
+  <link rel="stylesheet" href="style.css">
+  <style>main.doc { padding-top: 32px; } .doc h1 { font-size: 28px; } .doc h2 { font-size: 18px; margin-top: 28px; }
+    .doc p, .doc li { color: var(--text2); } .doc a { color: var(--accent); }
+    .code { font: 600 28px ui-monospace, monospace; letter-spacing: 2px; color: var(--text1, inherit); }
+    .btn { display: inline-block; margin-top: 16px; padding: 12px 20px; border-radius: 12px; background: var(--accent); color: #fff !important; text-decoration: none; font-weight: 600; }</style>
+</head>
+<body>
+<main class="doc">
+  <h1 id="title">Open in SPOTR</h1>
+  <p id="lead">Someone shared something from SPOTR with you.</p>
+  <p id="code" class="code" hidden></p>
+  <a id="open" class="btn" href="index.html">Open in SPOTR</a>
+  <p style="margin-top:24px">Don't have the app yet? SPOTR is a car-spotting game for iPhone. <a href="index.html">Learn more</a>.</p>
+</main>
+<script>
+  // Shared links look like open.html#c=CODE, #s=<spot id>, #u=<username>. The part after # never
+  // leaves the phone (it isn't sent to the web server), and only safe characters are used.
+  (function () {
+    var m = /^#([csu])=([A-Za-z0-9_-]{3,40})$/.exec(location.hash);
+    if (!m) return;
+    var kind = m[1], value = m[2];
+    var link = { c: "spotr://invite/", s: "spotr://spot/", u: "spotr://user/" }[kind] + value;
+    document.getElementById("open").href = link;
+    if (kind === "c") {
+      document.getElementById("title").textContent = "Join a crew on SPOTR";
+      document.getElementById("lead").textContent = "You've been invited to a crew. Open SPOTR, or enter this invite code in Crews:";
+      var code = document.getElementById("code"); code.textContent = value; code.hidden = false;
+    } else if (kind === "u") {
+      document.getElementById("title").textContent = "@" + value + " on SPOTR";
+    } else {
+      document.getElementById("title").textContent = "A spot on SPOTR";
+    }
+  })();
+</script>
+</body>
+</html>
